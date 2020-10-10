@@ -8,9 +8,12 @@ public class TransportLayerPacket {
     byte[] data;
 
     // You may need extra methods
+    public TransportLayerPacket(byte[] data) {
+        this.data = data;
+    }
 
     public TransportLayerPacket(TransportLayerPacket pkt) {
-        // complete this method
+        data = pkt.getData();
     }
 
     public void setSeqnum(int seqnum) {
