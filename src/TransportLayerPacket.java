@@ -5,15 +5,21 @@ public class TransportLayerPacket {
     private int seqnum;
     private int acknum;
 
+
+    CheckSum cSum = new CheckSum();
+
     byte[] data;
+    long sum;
 
     // You may need extra methods
     public TransportLayerPacket(byte[] data) {
         this.data = data;
+        this.sum = cSum.createChecksum(data);
     }
 
     public TransportLayerPacket(TransportLayerPacket pkt) {
         data = pkt.getData();
+        sum = pkt.getCheckSum();
     }
 
     public void setSeqnum(int seqnum) {
@@ -26,6 +32,10 @@ public class TransportLayerPacket {
 
     public byte[] getData() {
         return data;
+    }
+
+    public long getCheckSum(){
+        return sum;
     }
 
 }

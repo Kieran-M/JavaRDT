@@ -1,9 +1,12 @@
-public class SimpleTransportLayer extends TransportLayer {
+public class Sender extends TransportLayer {
 
 
-    public SimpleTransportLayer(String name, NetworkSimulator simulator) {
+    public Sender (String name, NetworkSimulator simulator) {
         super(name, simulator);
     }
+
+
+    byte[] data;
 
     @Override
     public void init() {
@@ -12,13 +15,14 @@ public class SimpleTransportLayer extends TransportLayer {
 
     @Override
     public void rdt_send(byte[] data) {
+        this.data = data;
         TransportLayerPacket pkt = new TransportLayerPacket(data);
         simulator.sendToNetworkLayer(this, pkt);
     }
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
-        simulator.sendToApplicationLayer(this, pkt.getData());
+
     }
 
     @Override
