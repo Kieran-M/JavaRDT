@@ -6,7 +6,7 @@ public class Main {
         sim.setSender(new Sender("RDT_Sender", sim));
 
         // TODO: Set the receiver (sim.setReceiver)
-        sim.setReceiver(new Sender("RDT_Receiver", sim));
+        sim.setReceiver(new Receiver("RDT_Receiver", sim));
 
         sim.runSimulation();
     }

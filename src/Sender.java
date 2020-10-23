@@ -18,11 +18,14 @@ public class Sender extends TransportLayer {
         this.data = data;
         TransportLayerPacket pkt = new TransportLayerPacket(data);
         simulator.sendToNetworkLayer(this, pkt);
-    }
+}
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
-
+        if(pkt.getAcknum() == 0) {
+            pkt.setData(this.data);
+            rdt_send(this.data);
+        }
     }
 
     @Override
