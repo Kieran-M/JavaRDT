@@ -14,18 +14,10 @@ public class Receiver extends TransportLayer {
     @Override
     public void rdt_send(byte[] data) {
         System.out.println("Receiver: rdt_send call");
-        long checksum = generateChecksum(data);
+        long checksum = createChecksum(data);
         TransportLayerPacket sndpkt = new TransportLayerPacket(data,checksum);
         System.out.println("Receiver: udt_send");
         udt_send(sndpkt);
-    }
-
-    public long generateChecksum(byte[] data) {
-        System.out.println("Receiver: generating checksum");
-        CRC32 crc = new CRC32();
-        crc.update(data);
-        System.out.println("Receiver: checksum = " + crc.getValue());
-        return crc.getValue();
     }
 
     private void udt_send(TransportLayerPacket pkt) {
@@ -48,7 +40,7 @@ public class Receiver extends TransportLayer {
     }
 
     private boolean isCorrupt(TransportLayerPacket rcvpkt) {
-        long receivedChecksum = generateChecksum(rcvpkt.data);
+        long receivedChecksum = createChecksum(rcvpkt.data);
         return receivedChecksum != rcvpkt.checksum;
     }
 

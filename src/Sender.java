@@ -22,7 +22,7 @@ public class Sender extends TransportLayer {
     @Override
     public void rdt_send(byte[] data) {
         System.out.println("Sender: rdt_send call");
-        long checksum = generateChecksum(data);
+        long checksum = createChecksum(data);
         TransportLayerPacket sndpkt = make_pkt(data, checksum);
         System.out.println("Sender: Adding packet to Q");
         pktQ.add(sndpkt);
@@ -31,14 +31,6 @@ public class Sender extends TransportLayer {
             fstPkt = false;
             udt_send(pktQ.get(0));
         }
-    }
-
-    public long generateChecksum(byte[] data) {
-        System.out.println("Sender: generating checksum");
-        CRC32 crc = new CRC32();
-        crc.update(data);
-        System.out.println("Sender: checksum = " + crc.getValue());
-        return crc.getValue();
     }
 
     private void udt_send(TransportLayerPacket pkt) {
