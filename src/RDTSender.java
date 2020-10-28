@@ -21,8 +21,7 @@ public class RDTSender extends TransportLayer {
         dataQ.add(data);
         if (fstPkt) {
             fstPkt = false;
-            data = dataQ.get(0);
-            TransportLayerPacket pkt = makePkt(data);
+            TransportLayerPacket pkt = makePkt(dataQ.get(0).clone());
             simulator.sendToNetworkLayer(this, pkt);
         }
     }
@@ -34,16 +33,14 @@ public class RDTSender extends TransportLayer {
 
         if (received < ACK) {
             System.out.println("Sender: NAK received");
-            data = dataQ.get(0);
-            System.out.println("Sender: Resending packet " + dataQ.get(0) + "\n");
-            TransportLayerPacket resendPkt = makePkt(data);
+            System.out.println("Sender: Resending packet " + dataQ.get(0).clone() + "\n");
+            TransportLayerPacket resendPkt = makePkt(dataQ.get(0).clone());
             simulator.sendToNetworkLayer(this, resendPkt);
         } else {
             System.out.println("Sender: ACK received\n");
             dataQ.remove(0);
             if (!dataQ.isEmpty()) {
-                data = dataQ.get(0);
-                TransportLayerPacket nextPkt = makePkt(data);
+                TransportLayerPacket nextPkt = makePkt(dataQ.get(0).clone());
                 simulator.sendToNetworkLayer(this, nextPkt);
             }
         }
