@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class RDTSender extends TransportLayer {
 
@@ -18,7 +17,10 @@ public class RDTSender extends TransportLayer {
 
     @Override
     public void rdt_send(byte[] data) {
+        //Add data to be sent to a list
         dataQ.add(data);
+
+        //If no packets have been sent yet send the first one to start off
         if (fstPkt) {
             fstPkt = false;
             TransportLayerPacket pkt = makePkt(dataQ.get(0).clone());
@@ -28,17 +30,12 @@ public class RDTSender extends TransportLayer {
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
-        byte[] data;
-        int received = pkt.getAcknum();
-
-        if (received < ACK) {
-            System.out.println("Sender: NAK received");
-            System.out.println("Sender: Resending packet " + dataQ.get(0).clone() + "\n");
-            TransportLayerPacket resendPkt = makePkt(dataQ.get(0).clone());
+        //If NAK or corrupted ACK is received resend the packet
+        if (pkt.getAcknum() < ACK) {
+            TransportLayerPacket resendPkt = makePkt(dataQ.get(0).clone()); //Create a packet with the current data
             simulator.sendToNetworkLayer(this, resendPkt);
-        } else {
-            System.out.println("Sender: ACK received\n");
-            dataQ.remove(0);
+        } else {  //ACK received
+            dataQ.remove(0);    //Remove the previously sent data from the list
             if (!dataQ.isEmpty()) {
                 TransportLayerPacket nextPkt = makePkt(dataQ.get(0).clone());
                 simulator.sendToNetworkLayer(this, nextPkt);

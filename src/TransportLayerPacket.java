@@ -22,10 +22,6 @@ public class TransportLayerPacket {
         this.checksum = checksum;
     }
 
-    public TransportLayerPacket(int acknum) {
-        this.acknum = acknum;
-    }
-
     public void setSeqnum(int seqnum) {
         this.seqnum = seqnum;
     }

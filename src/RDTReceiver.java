@@ -1,5 +1,3 @@
-import java.util.Arrays;
-
 public class RDTReceiver extends TransportLayer {
 
     public RDTReceiver(String name, NetworkSimulator simulator) {
@@ -19,20 +17,15 @@ public class RDTReceiver extends TransportLayer {
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
         long originalChecksum = pkt.getChecksum();
-        byte[] data = pkt.getData();
+        long newChecksum = genChecksum(pkt.getData());
 
-        System.out.println("Received: " + Arrays.toString(data) + " with checksum: " + originalChecksum);
-        long newChecksum = genChecksum(data);
-        System.out.println("New Checksum: " + newChecksum + "\n ");
-
+        //if checksums match deliver data to application layer and send ACK
         if (newChecksum == originalChecksum) {
-            System.out.println("Received ACK\n");
             simulator.sendToApplicationLayer(this, pkt.getData());
-            TransportLayerPacket ackPkt = makePkt("ACK".getBytes());
+            TransportLayerPacket ackPkt = makePkt("ACK".getBytes());    //This is just to have data for the network sim to corrupt
             ackPkt.setAcknum(ACK);
             simulator.sendToNetworkLayer(this, ackPkt);
-        } else {
-            System.out.println("Received NAK\n");
+        } else {    //If the received data is corrupt send NAK
             TransportLayerPacket nakPkt = makePkt("NAK".getBytes());
             nakPkt.setAcknum(NAK);
             simulator.sendToNetworkLayer(this, nakPkt);
