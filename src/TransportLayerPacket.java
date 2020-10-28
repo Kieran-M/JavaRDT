@@ -4,21 +4,17 @@ public class TransportLayerPacket {
     // You may need extra fields
     private int seqnum;
     private int acknum;
-
-    byte[] data;
-    long checksum;
+    private byte[] data;
 
     // You may need extra methods
 
     public TransportLayerPacket(TransportLayerPacket pkt) {
         // complete this method
         this.data = pkt.data;
-        this.checksum = pkt.checksum;
     }
 
-    public TransportLayerPacket(byte[] data, long checksum) {
+    public TransportLayerPacket(byte[] data) {
         this.data = data;
-        this.checksum = checksum;
     }
 
     public void setSeqnum(int seqnum) {
