@@ -3,8 +3,8 @@ import java.util.zip.Checksum;
 
 public abstract class TransportLayer {
 
-    int NAK = 0;
-    int ACK = 1;
+    byte[] NAK = "NAK".getBytes();
+    byte[] ACK = "ACK".getBytes();
     String name;
     NetworkSimulator simulator;
 
@@ -31,8 +31,8 @@ public abstract class TransportLayer {
         return checksum.getValue();
     }
 
-    public TransportLayerPacket makePkt(byte[] data) {
+    public TransportLayerPacket makePkt(int seqnum, byte[] data) {
         long checksum = genChecksum(data);
-        return new TransportLayerPacket(data, checksum);
+        return new TransportLayerPacket(seqnum, data, checksum);
     }
 }
