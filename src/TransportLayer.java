@@ -32,9 +32,14 @@ public abstract class TransportLayer {
         return checksum.getValue();
     }
 
-    public TransportLayerPacket makePkt(byte[] data) {
+    public boolean isCorrupt(TransportLayerPacket rcvpkt){
+        long receivedChecksum = genChecksum(rcvpkt.getData());
+        return receivedChecksum != rcvpkt.getChecksum();
+    }
+
+    public TransportLayerPacket makePkt(byte[] data, int seqnum) {
         long checksum = genChecksum(data);
-        System.out.println("Creating packet data: " + Arrays.toString(data) + " checksum: " + checksum + "\n");
-        return new TransportLayerPacket(data, checksum);
+        System.out.println("Creating packet data: " + Arrays.toString(data) + " checksum: " + checksum + " seqnum : " + seqnum + "\n");
+        return new TransportLayerPacket(data, checksum, seqnum);
     }
 }
