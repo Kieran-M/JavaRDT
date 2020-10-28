@@ -1,12 +1,10 @@
-public class Receiver extends TransportLayer {
+import java.util.zip.CRC32;
 
+public class Receiver extends TransportLayer {
 
     public Receiver(String name, NetworkSimulator simulator) {
         super(name, simulator);
     }
-
-
-    byte[] data;
 
     @Override
     public void init() {
@@ -15,37 +13,43 @@ public class Receiver extends TransportLayer {
 
     @Override
     public void rdt_send(byte[] data) {
-        TransportLayerPacket pkt = new TransportLayerPacket(data);
+        System.out.println("Receiver: rdt_send call");
+        long checksum = generateChecksum(data);
+        TransportLayerPacket sndpkt = new TransportLayerPacket(data,checksum);
+        System.out.println("Receiver: udt_send");
+        udt_send(sndpkt);
+    }
+
+    public long generateChecksum(byte[] data) {
+        System.out.println("Receiver: generating checksum");
+        CRC32 crc = new CRC32();
+        crc.update(data);
+        System.out.println("Receiver: checksum = " + crc.getValue());
+        return crc.getValue();
+    }
+
+    private void udt_send(TransportLayerPacket pkt) {
         simulator.sendToNetworkLayer(this, pkt);
     }
 
     @Override
-    public void rdt_receive(TransportLayerPacket pkt) {
-        if(isCorrupt(pkt) == true){
-            //if data is corrupt send NAK
-            TransportLayerPacket ackPkt = new TransportLayerPacket(new byte[1]);
-            pkt.setAcknum(0);
-            System.out.println("Packet is corrupt, resending");
-            simulator.sendToNetworkLayer(this,ackPkt);
-        }else{
-            //Send ACK
-            TransportLayerPacket ackPkt = new TransportLayerPacket(new byte[1]);
-            pkt.setAcknum(1);
-            System.out.println("Packet is not corrupt, sending to application layer");
-            simulator.sendToApplicationLayer(this, pkt.getData());
-            simulator.sendToNetworkLayer(this,ackPkt);
+    public void rdt_receive(TransportLayerPacket rcvpkt) {
+        System.out.println("Receiver: rdt_rcv call");
+        if (isCorrupt(rcvpkt)) {
+            System.out.println("Receiver: data corrupt udt_send(NAK)");
+            rdt_send("NAK".getBytes());
+        } else {
+            System.out.println("Receiver: extract data");
+            byte[] data = rcvpkt.getData();
+            System.out.println("Receiver: deliver_data");
+            simulator.sendToApplicationLayer(this, data);
+            rdt_send("ACK".getBytes());
         }
     }
 
-    public boolean isCorrupt(TransportLayerPacket pkt){
-        CheckSum cSum = new CheckSum();
-        long ogSum = pkt.getCheckSum();
-        long newSum = cSum.createChecksum(pkt.getData());
-        if(ogSum == newSum){
-            return false;
-        }else{
-            return true;
-        }
+    private boolean isCorrupt(TransportLayerPacket rcvpkt) {
+        long receivedChecksum = generateChecksum(rcvpkt.data);
+        return receivedChecksum != rcvpkt.checksum;
     }
 
     @Override

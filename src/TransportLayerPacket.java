@@ -2,54 +2,34 @@ public class TransportLayerPacket {
 
     // Maybe remove these
     // You may need extra fields
-    private int seqnum = 0;
+    private int seqnum;
     private int acknum;
 
-
-    CheckSum cSum = new CheckSum();
-
     byte[] data;
-    long sum;
+    long checksum;
 
     // You may need extra methods
-    public TransportLayerPacket(byte[] data) {
-        this.data = data;
-        this.sum = cSum.createChecksum(data);
-        setSeqnum(seqnum);
-    }
 
     public TransportLayerPacket(TransportLayerPacket pkt) {
-        data = pkt.getData();
-        sum = pkt.getCheckSum();
-        seqnum = pkt.getSeqnum();
-        acknum = pkt.getAcknum();
+        // complete this method
+        this.data = pkt.data;
+        this.checksum = pkt.checksum;
+    }
+
+    public TransportLayerPacket(byte[] data, long checksum) {
+        this.data = data;
+        this.checksum = checksum;
     }
 
     public void setSeqnum(int seqnum) {
-        this.seqnum = 1 - seqnum;
+        this.seqnum = seqnum;
     }
 
     public void setAcknum(int acknum) {
         this.acknum = acknum;
     }
 
-    public int getSeqnum() {
-        return this.seqnum;
-    }
-
-    public int getAcknum() {
-        return this.acknum;
-    }
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
     public byte[] getData() {
         return data;
     }
-
-    public long getCheckSum(){
-        return sum;
-    }
-
 }

@@ -1,3 +1,5 @@
+import java.util.zip.CRC32;
+
 public abstract class TransportLayer {
 
     String name;
