@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -34,7 +33,6 @@ public abstract class TransportLayer {
 
     public TransportLayerPacket makePkt(byte[] data) {
         long checksum = genChecksum(data);
-        System.out.println("Creating packet data: " + Arrays.toString(data) + " checksum: " + checksum + "\n");
         return new TransportLayerPacket(data, checksum);
     }
 }
