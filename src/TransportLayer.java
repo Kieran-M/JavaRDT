@@ -1,8 +1,11 @@
+import java.util.Arrays;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 public abstract class TransportLayer {
 
+    int NAK = 0;
+    int ACK = 1;
     String name;
     NetworkSimulator simulator;
 
@@ -23,12 +26,15 @@ public abstract class TransportLayer {
         return this.name;
     }
 
-    public long createChecksum(byte[] data){
-        //
-        byte[] arr = data;
+    public long genChecksum(byte[] data) {
         Checksum checksum = new CRC32();
-        checksum.update(arr, 0 ,arr.length);
-        long res = checksum.getValue();
-        return res;
+        checksum.update(data);
+        return checksum.getValue();
+    }
+
+    public TransportLayerPacket makePkt(byte[] data) {
+        long checksum = genChecksum(data);
+        System.out.println("Creating packet data: " + Arrays.toString(data) + " checksum: " + checksum + "\n");
+        return new TransportLayerPacket(data, checksum);
     }
 }

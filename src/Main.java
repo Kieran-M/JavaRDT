@@ -3,7 +3,7 @@ import java.util.zip.CRC32;
 public class Main {
 
     public static void main(String[] args) {
-        NetworkSimulator sim = new NetworkSimulator(10, 0.0, 0.0, 10.0, false, 3);
+        NetworkSimulator sim = new NetworkSimulator(10, 0.0, 0.3, 10.0, false, 3);
 
         // TODO: Set the sender   (sim.setSender)
         sim.setSender(new RDTSender("sender", sim));

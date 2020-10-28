@@ -3,8 +3,8 @@ import java.util.Arrays;
 
 public class RDTSender extends TransportLayer {
 
-    Boolean sndNxt;
-    ArrayList<byte[]> dataQ;
+    private Boolean fstPkt;
+    private ArrayList<byte[]> dataQ;
 
     public RDTSender(String name, NetworkSimulator simulator) {
         super(name, simulator);
@@ -12,29 +12,40 @@ public class RDTSender extends TransportLayer {
 
     @Override
     public void init() {
-        sndNxt = true;
+        fstPkt = true;
         dataQ = new ArrayList<>();
     }
 
     @Override
     public void rdt_send(byte[] data) {
-        if (!dataQ.contains(data)) {
-            dataQ.add(data);
-        }
-        if (sndNxt) {
-            sndNxt = false;
-            System.out.println("Sending: " + dataQ.get(0));
-            TransportLayerPacket pkt = new TransportLayerPacket(dataQ.get(0));
+        dataQ.add(data);
+        if (fstPkt) {
+            fstPkt = false;
+            data = dataQ.get(0);
+            TransportLayerPacket pkt = makePkt(data);
             simulator.sendToNetworkLayer(this, pkt);
         }
     }
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
-        sndNxt = true;
-        dataQ.remove(0);
-        if (!dataQ.isEmpty()) {
-            rdt_send(dataQ.get(0));
+        byte[] data;
+        int received = pkt.getAcknum();
+
+        if (received < ACK) {
+            System.out.println("Sender: NAK received");
+            data = dataQ.get(0);
+            System.out.println("Sender: Resending packet " + dataQ.get(0) + "\n");
+            TransportLayerPacket resendPkt = makePkt(data);
+            simulator.sendToNetworkLayer(this, resendPkt);
+        } else {
+            System.out.println("Sender: ACK received\n");
+            dataQ.remove(0);
+            if (!dataQ.isEmpty()) {
+                data = dataQ.get(0);
+                TransportLayerPacket nextPkt = makePkt(data);
+                simulator.sendToNetworkLayer(this, nextPkt);
+            }
         }
     }
 
@@ -42,4 +53,6 @@ public class RDTSender extends TransportLayer {
     public void timerInterrupt() {
 
     }
+
+
 }
