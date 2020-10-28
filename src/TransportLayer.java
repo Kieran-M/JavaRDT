@@ -1,5 +1,10 @@
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
+
 public abstract class TransportLayer {
 
+    int NAK = 0;
+    int ACK = 1;
     String name;
     NetworkSimulator simulator;
 
@@ -18,5 +23,16 @@ public abstract class TransportLayer {
 
     public String getName() {
         return this.name;
+    }
+
+    public long genChecksum(byte[] data) {
+        Checksum checksum = new CRC32();
+        checksum.update(data);
+        return checksum.getValue();
+    }
+
+    public TransportLayerPacket makePkt(byte[] data) {
+        long checksum = genChecksum(data);
+        return new TransportLayerPacket(data, checksum);
     }
 }
