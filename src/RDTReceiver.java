@@ -1,4 +1,9 @@
+import java.nio.charset.StandardCharsets;
+
 public class RDTReceiver extends TransportLayer {
+
+    private int expectedSeqnum;     //Seqnum currently expecting
+    private int prevSeqnum;         //The last correctly received packet's seqnum
 
     public RDTReceiver(String name, NetworkSimulator simulator) {
         super(name, simulator);
@@ -6,7 +11,8 @@ public class RDTReceiver extends TransportLayer {
 
     @Override
     public void init() {
-
+        expectedSeqnum = 0;         //Expecting 0 fro first packet
+        prevSeqnum = 0;             //No previous packets so set to 0
     }
 
     @Override
@@ -16,20 +22,32 @@ public class RDTReceiver extends TransportLayer {
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
-        long originalChecksum = pkt.getChecksum();
-        long newChecksum = genChecksum(pkt.getData());
-
-        //if checksums match deliver data to application layer and send ACK
-        if (newChecksum == originalChecksum) {
+        System.out.println("Receiver: Receiving packet\n");
+        System.out.println("Receiver: expecting seqnum " + expectedSeqnum + "\n");
+        System.out.println("Receiver: Got seqnum " + pkt.getSeqnum() + "\n");
+        //Check if packet is not corrupt && has correct seqnum
+        if (!isCorrupt(pkt) && expectedSeqnum == pkt.getSeqnum()){
+            System.out.println("Receiver: data and seqnum are ok\n");
+            sendAck(expectedSeqnum);
+            System.out.println("Receiver: sending to application layer\n");
             simulator.sendToApplicationLayer(this, pkt.getData());
-            TransportLayerPacket ackPkt = makePkt("ACK".getBytes());    //This is just to have data for the network sim to corrupt
-            ackPkt.setAcknum(ACK);
-            simulator.sendToNetworkLayer(this, ackPkt);
-        } else {    //If the received data is corrupt send NAK
-            TransportLayerPacket nakPkt = makePkt("NAK".getBytes());
-            nakPkt.setAcknum(NAK);
-            simulator.sendToNetworkLayer(this, nakPkt);
+            System.out.println("Receiver: Sent " + new String(pkt.getData(), StandardCharsets.UTF_8) + "\n");
+            prevSeqnum = pkt.getSeqnum();
+            expectedSeqnum = 1 - expectedSeqnum;
+            System.out.println("Receiver: new expected seqnum: " + expectedSeqnum + "\n");
+        }else{
+            //Send back ACK of last received packet
+            System.out.println("Receiver: Packet data corrupted or has wrong seqnum- making packet");
+            sendAck(prevSeqnum);
         }
+    }
+
+    //Send ACK packet with given seqnum
+    public void sendAck(int seq) {
+        System.out.println("Receiver: Making ACK packet");
+        TransportLayerPacket ackPkt = makePkt(seq, ACK);
+        System.out.println("Receiver: Sending ACK + Seqnum " + seq + " to network layer\n");
+        simulator.sendToNetworkLayer(this, ackPkt);
     }
 
     @Override
