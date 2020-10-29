@@ -1,6 +1,9 @@
+import java.nio.charset.StandardCharsets;
+
 public class RDTReceiver extends TransportLayer {
 
-    int expectedSeqnum;
+    private int expectedSeqnum;     //Seqnum currently expecting
+    private int prevSeqnum;         //The last correctly received packet's seqnum
 
     public RDTReceiver(String name, NetworkSimulator simulator) {
         super(name, simulator);
@@ -8,7 +11,8 @@ public class RDTReceiver extends TransportLayer {
 
     @Override
     public void init() {
-        expectedSeqnum = 0;
+        expectedSeqnum = 0;         //Expecting 0 fro first packet
+        prevSeqnum = 0;             //No previous packets so set to 0
     }
 
     @Override
@@ -19,35 +23,31 @@ public class RDTReceiver extends TransportLayer {
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
         System.out.println("Receiver: Receiving packet\n");
-        long originalChecksum = pkt.getChecksum();
-        long newChecksum = genChecksum(pkt.getData());
-        System.out.println("Receiver: New Checksum: " + newChecksum + "\nOriginal Checksum: " + pkt.getChecksum() + "\n");
-
-        if (newChecksum != originalChecksum) {
-            System.out.println("Receiver: Data corrupted - making packet");
-            TransportLayerPacket nakPkt = makePkt(expectedSeqnum, NAK);
-            System.out.println("Receiver: Sending NAK to network layer\n");
-            simulator.sendToNetworkLayer(this, nakPkt);
-        } else {
-            System.out.println("Receiver: expectedSeqnum: " + expectedSeqnum + "\nreceived seqnum: " + pkt.getSeqnum() + "\n");
-            if (pkt.getSeqnum() != expectedSeqnum) {
-                System.out.println("Receiver: Wrong seqnum sending ACK not delivering to application layer");
-                TransportLayerPacket ackPkt = makePkt(expectedSeqnum, ACK);
-                System.out.println("Receiver: Sending ACK to network layer\n");
-                simulator.sendToNetworkLayer(this, ackPkt);
-            } else {
-                System.out.println("Receiver: data and seqnum are ok\n");
-                expectedSeqnum ^= 1;
-                System.out.println("Receiver: new expectedSeqnum: " + expectedSeqnum);
-                System.out.println("Receiver: sending to application layer");
-                simulator.sendToApplicationLayer(this, pkt.getData());
-
-                System.out.println("Receiver: making ACK packet");
-                TransportLayerPacket ackPkt = makePkt(expectedSeqnum, ACK);
-                System.out.println("Receiver: Sending ACK to network layer\n");
-                simulator.sendToNetworkLayer(this, ackPkt);
-            }
+        System.out.println("Receiver: expecting seqnum " + expectedSeqnum + "\n");
+        System.out.println("Receiver: Got seqnum " + pkt.getSeqnum() + "\n");
+        //Check if packet is not corrupt && has correct seqnum
+        if (!isCorrupt(pkt) && expectedSeqnum == pkt.getSeqnum()){
+            System.out.println("Receiver: data and seqnum are ok\n");
+            sendAck(expectedSeqnum);
+            System.out.println("Receiver: sending to application layer\n");
+            simulator.sendToApplicationLayer(this, pkt.getData());
+            System.out.println("Receiver: Sent " + new String(pkt.getData(), StandardCharsets.UTF_8) + "\n");
+            prevSeqnum = pkt.getSeqnum();
+            expectedSeqnum = 1 - expectedSeqnum;
+            System.out.println("Receiver: new expected seqnum: " + expectedSeqnum + "\n");
+        }else{
+            //Send back ACK of last received packet
+            System.out.println("Receiver: Packet data corrupted or has wrong seqnum- making packet");
+            sendAck(prevSeqnum);
         }
+    }
+
+    //Send ACK packet with given seqnum
+    public void sendAck(int seq) {
+        System.out.println("Receiver: Making ACK packet");
+        TransportLayerPacket ackPkt = makePkt(seq, ACK);
+        System.out.println("Receiver: Sending ACK + Seqnum " + seq + " to network layer\n");
+        simulator.sendToNetworkLayer(this, ackPkt);
     }
 
     @Override

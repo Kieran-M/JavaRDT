@@ -3,7 +3,6 @@ import java.util.zip.Checksum;
 
 public abstract class TransportLayer {
 
-    byte[] NAK = "NAK".getBytes();
     byte[] ACK = "ACK".getBytes();
     String name;
     NetworkSimulator simulator;
@@ -29,6 +28,11 @@ public abstract class TransportLayer {
         Checksum checksum = new CRC32();
         checksum.update(data);
         return checksum.getValue();
+    }
+
+    public boolean isCorrupt(TransportLayerPacket pkt){
+        long packetChecksum = pkt.getChecksum();
+        return (packetChecksum != genChecksum(pkt.getData()));
     }
 
     public TransportLayerPacket makePkt(int seqnum, byte[] data) {
