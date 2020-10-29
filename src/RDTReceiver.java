@@ -6,6 +6,8 @@ public class RDTReceiver extends TransportLayer {
         super(name, simulator);
     }
 
+    private int expectedSeqnum;     //Seqnum receiver is waiting for
+
     @Override
     public void init() {
         expectedSeqnum = 0;

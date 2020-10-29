@@ -5,8 +5,8 @@ public class RDTSender extends TransportLayer {
 
     private int seqnum;
     private Boolean fstPkt;
-    private ArrayList<byte[]> dataQ;
-
+    private ArrayList<byte[]> dataQ; //Queue of packets to be sent
+    private int seqnum;              //Current seqnum to be sent
     public RDTSender(String name, NetworkSimulator simulator) {
         super(name, simulator);
     }
@@ -16,6 +16,7 @@ public class RDTSender extends TransportLayer {
         seqnum = 0;
         fstPkt = true;
         dataQ = new ArrayList<>();
+        seqnum = 0;
     }
 
     @Override
