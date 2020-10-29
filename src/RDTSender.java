@@ -45,15 +45,15 @@ public class RDTSender extends TransportLayer {
             System.out.println("Sender: Packet corrupted or has wrong seqnum\n");
             System.out.println("Sender: Making resend packet");
             TransportLayerPacket resendPkt = makePkt(seqnum, dataQ.get(0).clone()); //Create a packet with the current data
-            System.out.println("Sender: Resending packet to network layer with seqnum: " + seqnum + "\n");
             simulator.sendToNetworkLayer(this, resendPkt);
+            System.out.println("Sender: Resending packet to network layer with seqnum: " + seqnum + "\n");
         } else {
             //ACK is received with correct Seqnum
             System.out.println("Sender: ACK received");
             dataQ.remove(0);    //Remove the previously sent data from the list
             lastAckdPacket = pkt.getSeqnum();   //Set last ACK'd packet seqnum
-            System.out.println("Sender: new seqnum: " + seqnum + "\n");
             seqnum = 1 - seqnum; //Flips the seqnum
+            System.out.println("Sender: new seqnum: " + seqnum + "\n");
             if (!dataQ.isEmpty()) {
                 System.out.println("Sender: Making packet");
                 TransportLayerPacket nextPkt = makePkt(seqnum, dataQ.get(0).clone());
