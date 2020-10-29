@@ -3,6 +3,7 @@ import java.util.zip.Checksum;
 
 public abstract class TransportLayer {
 
+    protected static int TIMEOUT = 100;
     byte[] ACK = "ACK".getBytes();
     String name;
     NetworkSimulator simulator;
