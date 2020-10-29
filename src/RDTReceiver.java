@@ -1,7 +1,6 @@
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
 public class RDTReceiver extends TransportLayer {
+
+    int expectedSeqnum;
 
     public RDTReceiver(String name, NetworkSimulator simulator) {
         super(name, simulator);
@@ -21,44 +20,35 @@ public class RDTReceiver extends TransportLayer {
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
+        System.out.println("Receiver: Receiving packet\n");
         long originalChecksum = pkt.getChecksum();
-        byte[] data = pkt.getData();
+        long newChecksum = genChecksum(pkt.getData());
+        System.out.println("Receiver: New Checksum: " + newChecksum + "\nOriginal Checksum: " + pkt.getChecksum() + "\n");
 
-
-        System.out.println("Received: " + Arrays.toString(data) + " with checksum: " + originalChecksum);
-        long newChecksum = genChecksum(data);
-        System.out.println("New Checksum: " + newChecksum + "\n ");
-
-        //Check if received packet is corrupt
-        if (isCorrupt(pkt)) {
-            System.out.println("Received corrupted packet\n");
-            simulator.sendToApplicationLayer(this, pkt.getData());
-            //Send NACK to network layer
-            TransportLayerPacket ackPkt = makePkt("NACK".getBytes(), expectedSeqnum);
-            ackPkt.setAcknum(NAK);
-            simulator.sendToNetworkLayer(this, ackPkt);
-        } else if(expectedSeqnum != pkt.getSeqnum()){
-            //Packet is not corrupt but wrong seqnum received
-            System.out.println("Received incorrect seqnum, sending ACK\n");
-            System.out.println("Expected " + expectedSeqnum + "got " + pkt.getSeqnum());
-            //Send ACK to network layer
-            TransportLayerPacket nakPkt = makePkt("ACK".getBytes(),expectedSeqnum);
-            nakPkt.setAcknum(ACK);
+        if (newChecksum != originalChecksum) {
+            System.out.println("Receiver: Data corrupted - making packet");
+            TransportLayerPacket nakPkt = makePkt(expectedSeqnum, NAK);
+            System.out.println("Receiver: Sending NAK to network layer\n");
             simulator.sendToNetworkLayer(this, nakPkt);
-        }else{
-            //Packet is received ok
-            System.out.println("Received packet OK, sending ACK\n");
-            System.out.println("Receiver: extract data");
-            System.out.println("Receiver: deliver_data");
-            //Send data to application layer
-            simulator.sendToApplicationLayer(this, data);
-            System.out.println("Receiver: Sent " + new String(data, StandardCharsets.UTF_8));
-            //Send ACK to network layer
-            TransportLayerPacket ackPkt = makePkt("ACK".getBytes(), expectedSeqnum);
-            ackPkt.setAcknum(ACK);
-            simulator.sendToNetworkLayer(this, ackPkt);
-            //Flip expected seqnum
-            expectedSeqnum = 1 - expectedSeqnum;
+        } else {
+            System.out.println("Receiver: expectedSeqnum: " + expectedSeqnum + "\nreceived seqnum: " + pkt.getSeqnum() + "\n");
+            if (pkt.getSeqnum() != expectedSeqnum) {
+                System.out.println("Receiver: Wrong seqnum sending ACK not delivering to application layer");
+                TransportLayerPacket ackPkt = makePkt(expectedSeqnum, ACK);
+                System.out.println("Receiver: Sending ACK to network layer\n");
+                simulator.sendToNetworkLayer(this, ackPkt);
+            } else {
+                System.out.println("Receiver: data and seqnum are ok\n");
+                expectedSeqnum ^= 1;
+                System.out.println("Receiver: new expectedSeqnum: " + expectedSeqnum);
+                System.out.println("Receiver: sending to application layer");
+                simulator.sendToApplicationLayer(this, pkt.getData());
+
+                System.out.println("Receiver: making ACK packet");
+                TransportLayerPacket ackPkt = makePkt(expectedSeqnum, ACK);
+                System.out.println("Receiver: Sending ACK to network layer\n");
+                simulator.sendToNetworkLayer(this, ackPkt);
+            }
         }
     }
 

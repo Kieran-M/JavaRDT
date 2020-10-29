@@ -1,11 +1,10 @@
-import java.util.Arrays;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 public abstract class TransportLayer {
 
-    int NAK = 0;
-    int ACK = 1;
+    byte[] NAK = "NAK".getBytes();
+    byte[] ACK = "ACK".getBytes();
     String name;
     NetworkSimulator simulator;
 
@@ -32,14 +31,8 @@ public abstract class TransportLayer {
         return checksum.getValue();
     }
 
-    public boolean isCorrupt(TransportLayerPacket rcvpkt){
-        long receivedChecksum = genChecksum(rcvpkt.getData());
-        return receivedChecksum != rcvpkt.getChecksum();
-    }
-
-    public TransportLayerPacket makePkt(byte[] data, int seqnum) {
+    public TransportLayerPacket makePkt(int seqnum, byte[] data) {
         long checksum = genChecksum(data);
-        System.out.println("Creating packet data: " + Arrays.toString(data) + " checksum: " + checksum + " seqnum : " + seqnum + "\n");
-        return new TransportLayerPacket(data, checksum, seqnum);
+        return new TransportLayerPacket(seqnum, data, checksum);
     }
 }

@@ -17,14 +17,15 @@ public class TransportLayerPacket {
         this.data = pkt.data;
     }
 
-    public TransportLayerPacket(byte[] data, long checksum, int seqnum) {
+    public TransportLayerPacket(int seqnum, byte[] data, long checksum) {
+        this.seqnum = seqnum;
         this.data = data;
         this.checksum = checksum;
         this.seqnum = seqnum;
     }
 
-    public TransportLayerPacket(int acknum) {
-        this.acknum = acknum;
+    public int getSeqnum() {
+        return seqnum;
     }
 
     public void setSeqnum(int seqnum) {
