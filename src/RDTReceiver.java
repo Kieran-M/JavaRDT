@@ -4,7 +4,6 @@ public class RDTReceiver extends TransportLayer {
 
     private int expectedSeqnum;     //Seqnum currently expecting
     private int prevSeqnum;         //The last correctly received packet's seqnum
-    private boolean firstRun;
 
     public RDTReceiver(String name, NetworkSimulator simulator) {
         super(name, simulator);
@@ -23,18 +22,28 @@ public class RDTReceiver extends TransportLayer {
 
     @Override
     public void rdt_receive(TransportLayerPacket pkt) {
+        //Receiver output to make it easier to follow
         System.out.println("Receiver: Receiving packet\n");
+        System.out.println("Receiver: Expecting Seqnum " + expectedSeqnum + "\n");
+        System.out.println("Receiver: Previous Seqnum was " + prevSeqnum + "\n");
+        System.out.println("Receiver: Receiver seqnum is " + pkt.getSeqnum() + "\n");
+        System.out.println("Receiver: Packet Checksum is " + pkt.getChecksum() + "\n");
+        System.out.println("Receiver: Calculated checksum is " + genChecksum(pkt.getData()) + "\n");
+
         if (!isCorrupt(pkt) && (expectedSeqnum == pkt.getSeqnum())){
             System.out.println("Receiver: data and seqnum are ok\n");
             System.out.println("Receiver: sending to application layer\n");
+
             simulator.sendToApplicationLayer(this, pkt.getData());
             sendAck(expectedSeqnum);
+
             System.out.println("Receiver: Sent " + new String(pkt.getData(), StandardCharsets.UTF_8) + "\n");
             expectedSeqnum++;
             prevSeqnum++;
+
             System.out.println("Receiver: new expected seqnum: " + expectedSeqnum + "\n");
         }else {
-            //Send back ACK of last received packet
+                //Send back ACK of last received packet
                 System.out.println("Receiver: Packet data corrupted or has wrong seqnum- making packet");
                 sendAck(prevSeqnum);
             }
